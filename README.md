@@ -1,7 +1,4 @@
-# FOLLOW TWEET
-
-
-[![Screenshot from 2017-03-16 22-02-35.png](https://s28.postimg.org/xzqkds41p/Screenshot_from_2017_03_16_22_02_35.png)](https://postimg.org/image/96h0d4l15/)
+# [![Screenshot from 2017-03-16 22-02-35.png](https://s28.postimg.org/xzqkds41p/Screenshot_from_2017_03_16_22_02_35.png)](https://postimg.org/image/96h0d4l15/)
 
 
 CLI interface to fetch tweets based on keywords, hashtags and follow those users
