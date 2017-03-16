@@ -1,14 +1,7 @@
 # FOLLOW TWEET
 
 
-$$$$$$$$\        $$\ $$\                               $$$$$$$$\                                 $$\
-$$  _____|       $$ |$$ |                              \__$$  __|                                $$ |
-$$ |    $$$$$$\  $$ |$$ | $$$$$$\  $$\  $$\  $$\          $$ |$$\  $$\  $$\  $$$$$$\   $$$$$$\ $$$$$$\
-$$$$$\ $$  __$$\ $$ |$$ |$$  __$$\ $$ | $$ | $$ |         $$ |$$ | $$ | $$ |$$  __$$\ $$  __$$\\_$$  _|
-$$  __|$$ /  $$ |$$ |$$ |$$ /  $$ |$$ | $$ | $$ |         $$ |$$ | $$ | $$ |$$$$$$$$ |$$$$$$$$ | $$ |
-$$ |   $$ |  $$ |$$ |$$ |$$ |  $$ |$$ | $$ | $$ |         $$ |$$ | $$ | $$ |$$   ____|$$   ____| $$ |$$\
-$$ |   \$$$$$$  |$$ |$$ |\$$$$$$  |\$$$$$\$$$$  |         $$ |\$$$$$\$$$$  |\$$$$$$$\ \$$$$$$$\  \$$$$  |
-\__|    \______/ \__|\__| \______/  \_____\____/          \__| \_____\____/  \_______| \_______|  \____/
+[![Screenshot from 2017-03-16 22-02-35.png](https://s28.postimg.org/xzqkds41p/Screenshot_from_2017_03_16_22_02_35.png)](https://postimg.org/image/96h0d4l15/)
 
 
 CLI interface to fetch tweets based on keywords, hashtags and follow those users
@@ -53,7 +46,6 @@ The first question is the query parameter, where you can use different operators
 For fetching Tweet search data, the below is an example of questions:
 
 [![Screenshot from 2017-03-16 21-50-58.png](https://s22.postimg.org/8pv8przoh/Screenshot_from_2017_03_16_21_50_58.png)](https://postimg.org/image/iaevcnp0d/)
-[![windowsDead6.png](https://s3.postimg.org/5a2ol65f7/windows_Dead6.png)](https://postimg.org/image/hby2fbenj/)
 
 The last question would be the name of the output file you would want to write to.
 If you specify the same file name as the last, remember to take a backup.
