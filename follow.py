@@ -226,29 +226,32 @@ def oauth_req(url, consumer_key, consumer_secret, key, secret, http_method="GET"
 
 def follow_user(tweet_data, consumer_key, consumer_secret, key, secret):
     following_users = []
-    for tweet in tweet_data:
-        user_info = tweet['user']
-        request_sent = user_info['follow_request_sent']
-        following = user_info['following']
-        if not (request_sent or following):
-            user_id = user_info['id']
-            parameter_encode = urllib.urlencode({'user_id': user_id})
-            # TODO Add fake user-agent
-            follow_request = oauth_req(settings.TWITTER_API_URL + '/friendships/create.json?' + parameter_encode,
-                                      consumer_key, consumer_secret, key, secret, http_method="POST")
-            follow_response = json.loads(follow_request)
-            if 'following' in follow_response:
-                following_users.append({
-                    'user_id': user_id,
-                    'screen_name': user_info['screen_name'],
-                    'name': user_info['name'],
-                    'description': user_info['description'],
-                    'location': user_info['location'],
-                    'followers_count': user_info['followers_count']
-                })
-                print('Following: %s.\n' % user_info['screen_name'])
-                print('Sleeping 10secs since next follow request.\n')
-                time.sleep(10)
+    try:
+        for tweet in tweet_data:
+            user_info = tweet['user']
+            request_sent = user_info['follow_request_sent']
+            following = user_info['following']
+            if not (request_sent or following):
+                user_id = user_info['id']
+                parameter_encode = urllib.urlencode({'user_id': user_id})
+                # TODO Add fake user-agent
+                follow_request = oauth_req(settings.TWITTER_API_URL + '/friendships/create.json?' + parameter_encode,
+                                          consumer_key, consumer_secret, key, secret, http_method="POST")
+                follow_response = json.loads(follow_request)
+                if 'following' in follow_response:
+                    following_users.append({
+                        'user_id': user_id,
+                        'screen_name': user_info['screen_name'],
+                        'name': user_info['name'],
+                        'description': user_info['description'],
+                        'location': user_info['location'],
+                        'followers_count': user_info['followers_count']
+                    })
+                    print('Following: %s.\n' % user_info['screen_name'])
+                    print('Sleeping 10secs since next follow request.\n')
+                    time.sleep(10)
+    except Exception as e:
+        print(e)
     return following_users
 
 
