@@ -69,4 +69,3 @@ Please read [CONTRIBUTE.md](CONTRIBUTE.md) for details on our code of conduct, a
 ## Acknowledgments
 
 * Code from [Pelican](https://github.com/getpelican/pelican) used
-* Json2csv converter used to convert Json response to Csv [Json2csv](https://github.com/evidens/json2csv)

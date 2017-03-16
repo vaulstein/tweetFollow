@@ -10,11 +10,9 @@ import urllib
 import json
 import requests
 import socket
-import json2csv
-import gen_outline
 import time
 import pytz
-import os
+import csv
 
 try:
     import tzlocal
@@ -232,6 +230,11 @@ def follow_user(tweet_data, consumer_key, consumer_secret, key, secret):
             request_sent = user_info['follow_request_sent']
             following = user_info['following']
             if not (request_sent or following):
+                like_params = urllib.urlencode({'id': tweet['id']})
+                like_tweet = oauth_req(settings.TWITTER_API_URL + '/favorites/create.json?' + like_params,
+                                          consumer_key, consumer_secret, key, secret, http_method="POST")
+                print('Liked tweet. Sleeping 10s before follow.')
+                time.sleep(10)
                 user_id = user_info['id']
                 parameter_encode = urllib.urlencode({'user_id': user_id})
                 # TODO Add fake user-agent
@@ -239,6 +242,16 @@ def follow_user(tweet_data, consumer_key, consumer_secret, key, secret):
                                           consumer_key, consumer_secret, key, secret, http_method="POST")
                 follow_response = json.loads(follow_request)
                 if 'following' in follow_response:
+                    with open('user.csv', 'a') as csv_file:
+                        writer = csv.writer(csv_file, delimiter=str('\t'))
+                        writer.writerow([
+                            user_id,
+                            user_info['screen_name'],
+                            user_info['name'],
+                            user_info['description'],
+                            user_info['location'],
+                            user_info['followers_count']
+                                         ])
                     following_users.append({
                         'user_id': user_id,
                         'screen_name': user_info['screen_name'],
@@ -359,26 +372,8 @@ required output.
                                      CONF['consumer_secret'],
                                      CONF['api_key'], CONF['api_secret'])
     if json_search_data['users']:
-        print('API response received.')
-        with open('json_dump.json', 'w') as outfile:
-            json.dump(json_search_data, outfile)
-        outline = gen_outline.make_outline('json_dump.json', False, 'users')
-        print('Generating outline file..')
-        outfile = 'outline.json'
-        with open(outfile, 'w') as f:
-            json.dump(outline, f, indent=2, sort_keys=True)
-        print('Outline file generation done.')
-        with open(outfile) as f:
-            key_map = json.load(f)
-        loader = json2csv.Json2Csv(key_map)
-        outfile = 'users.csv'
-        if os.path.isfile(outfile):
-            os.remove(outfile)
-        print('Writing to %s' % outfile)
-        with open('json_dump.json') as f:
-            loader.load(f)
-        loader.write_csv(filename=outfile, make_strings=True)
         print('Output file generated.')
+        print('Process complete. Total users followed %d' % len(json_search_data['users']))
     else:
         print('Search yield no results')
 
