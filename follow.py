@@ -13,6 +13,8 @@ import socket
 import time
 import pytz
 import csv
+import ConfigParser
+import os
 
 try:
     import tzlocal
@@ -213,6 +215,25 @@ def ask_timezone(question, default, tzurl):
                   ' (check [{0}])'.format(tzurl))
     return r
 
+def config_reader(filename, exists=False):
+    config = ConfigParser.RawConfigParser()
+    if exists:
+        config.read(filename)
+        CONF['consumer_key'] = config.get('Credentials', 'consumer_key')
+        CONF['consumer_secret'] = config.get('Credentials', 'consumer_secret')
+        CONF['api_key'] = config.get('Credentials', 'api_key')
+        CONF['api_secret'] = config.get('Credentials', 'api_secret')
+    else:
+        config.add_section('Credentials')
+        config.set('Credentials', 'api_secret', CONF['api_secret'])
+        config.set('Credentials', 'api_key', CONF['api_key'])
+        config.set('Credentials', 'consumer_secret', CONF['consumer_secret'])
+        config.set('Credentials', 'consumer_key', CONF['consumer_key'])
+
+        # Writing our configuration file to 'example.cfg'
+        with open(filename, 'wb') as configfile:
+            config.write(configfile)
+
 
 def oauth_req(url, consumer_key, consumer_secret, key, secret, http_method="GET", post_body="", http_headers=None):
     consumer = oauth2.Consumer(key=consumer_key, secret=consumer_secret)
@@ -246,10 +267,10 @@ def follow_user(tweet_data, consumer_key, consumer_secret, key, secret):
                         writer = csv.writer(csv_file, delimiter=str('\t'))
                         writer.writerow([
                             user_id,
-                            user_info['screen_name'],
-                            user_info['name'],
-                            user_info['description'],
-                            user_info['location'],
+                            unicode(user_info['screen_name']).encode("utf-8"),
+                            unicode(user_info['name']).encode("utf-8"),
+                            unicode(user_info['description']).encode("utf-8"),
+                            unicode(user_info['location']).encode("utf-8"),
                             user_info['followers_count']
                                          ])
                     following_users.append({
@@ -266,7 +287,6 @@ def follow_user(tweet_data, consumer_key, consumer_secret, key, secret):
     except Exception as e:
         print(e)
     return following_users
-
 
 
 def get_json_data(url, parameters, consumer_key, consumer_secret, key, secret):
@@ -321,18 +341,22 @@ Please answer the following questions so this script can generate your
 required output.
 
     '''.format(v=__version__))
-
+    configfile = 'twitter.cfg'
+    if os.path.isfile(configfile):
+        config_reader(configfile, exists=True)
     CONF['consumer_key'] = ask('Your Application\'s Consumer Key(API Key)? Found here: https://apps.twitter.com/',
-                               answer=str_compat)
+                               answer=str_compat, default=CONF['consumer_key'])
     CONF['consumer_secret'] = ask('Your Application\'s Consumer Secret(API Secret)? ' +
                                   'Found here: https://apps.twitter.com/app/{ Your API}/keys',
-                                  answer=str_compat)
+                                  answer=str_compat, default=CONF['consumer_secret'])
     CONF['api_key'] = ask('Your Access Token? ' +
                           'Found here: https://apps.twitter.com/app/{ Your API}/keys',
-                          answer=str_compat)
+                          answer=str_compat, default=CONF['api_key'])
     CONF['api_secret'] = ask('Your Access Token Secret? ' +
                              'Found here: https://apps.twitter.com/app/{ Your API}/keys',
-                             answer=str_compat)
+                             answer=str_compat, default=CONF['api_secret'])
+    if not os.path.isfile(configfile):
+        config_reader(configfile)
     request_params = {}
 
     print("A list of questions would now be asked to fetch Tweets. And those users will be followed.")
