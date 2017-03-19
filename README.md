@@ -4,6 +4,13 @@
 CLI interface to fetch tweets based on keywords, hashtags and follow those users.
 You can now Un-follow users who don't follow you and send a Thank You message to those who follow.
 
+## Follow Limit
+
+Twitter has a limit of following 1000 users per day.
+Once you receive this limit, you won't be allowed to follow more users for the day.
+Trying to follow more user may result in your account being locked.
+https://support.twitter.com/articles/66885
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine.

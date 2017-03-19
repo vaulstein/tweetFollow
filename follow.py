@@ -35,6 +35,8 @@ def follow_user(tweet_data, like):
                     common.TWITTER_API_URL + '/friendships/create.json?' + parameter_encode,
                     http_method="POST")
                 follow_response = json.loads(follow_request)
+                if 'errors' in follow_response:
+                    print('You have reached your limit of following 1000 users.')
                 if 'following' in follow_response:
                     with open('user.csv', 'a') as csv_file:
                         writer = csv.writer(csv_file, delimiter=str('\t'))
