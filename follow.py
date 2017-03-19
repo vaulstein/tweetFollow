@@ -135,8 +135,10 @@ def main():
         else:
             print('Search yield no results')
     else:
-        print('Un-following Users.')
-        unfollow.follow_check()
+        print('Un-following Users and sending Thank you message to following users.')
+        custom_message = common.ask('Custom message for new followers? Or Add message to ThankYouMessage.txt',
+                                    answer=common.str_compat, default=" ")
+        unfollow.follow_check(custom_message)
 
 if __name__ == "__main__":
     main()

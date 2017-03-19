@@ -24,6 +24,18 @@ def return_user():
     return user_list
 
 
+def send_message(user_id, message=None):
+    if not message:
+        message_data = open('ThankYouMessage.txt', 'rb')
+        message = message_data.read()
+    parameter_encode = urllib.urlencode({'user_id': user_id, 'text': message})
+    message_call = common.oauth_req(common.TWITTER_API_URL + '/direct_messages/new.json' + parameter_encode)
+    message_call_data = json.loads(message_call)
+    if 'created_at' in message_call_data:
+        print('Thank you message sent.')
+        time.sleep(5)
+
+
 def is_following(user_id):
     parameter_encode = urllib.urlencode({'target_id': user_id})
     follow_status_call = common.oauth_req(common.TWITTER_API_URL + '/friendships/show.json?' + parameter_encode)
@@ -42,10 +54,11 @@ def un_follow(user_id):
         time.sleep(5)
         return False
     else:
+        send_message(user_id)
         return True
 
 
-def follow_check():
+def follow_check(message=None):
     user_data = return_user()
     for user in user_data:
         status = un_follow(user[0])
@@ -64,7 +77,9 @@ def follow_check():
 
 def main():
     common.start()
-    follow_check()
+    custom_message = common.ask('Custom message for new followers?',
+                                answer=common.str_compat, default=" ")
+    follow_check(custom_message.strip())
 
 
 if __name__ == '__main__':

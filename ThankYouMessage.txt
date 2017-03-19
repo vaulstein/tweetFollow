@@ -1,0 +1,7 @@
+# Sample Thank you Message
+# Replace with your own
+
+Thank you for the follow.
+
+Checkout my blog: http://vaulstein.github.io
+
