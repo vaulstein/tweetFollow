@@ -19,9 +19,7 @@ def return_user():
 
 
     user_list = rows[last_row:]
-    last_read_file = open('last_read_row.txt', 'a')
-    last_read_file.write(str(len(rows)))
-    return user_list
+    return {'user_list': user_list, 'last_row': last_row}
 
 
 def send_message(user_id, message=None):
@@ -45,7 +43,7 @@ def is_following(user_id):
     return follow_status
 
 
-def un_follow(user_id):
+def un_follow(user_id, message):
     follow_status = is_following(user_id)
     if not follow_status:
         # Not following, un-follow
@@ -54,14 +52,17 @@ def un_follow(user_id):
         time.sleep(5)
         return False
     else:
-        send_message(user_id)
+        send_message(user_id, message)
         return True
 
 
 def follow_check(message=None):
-    user_data = return_user()
+    user_dict = return_user()
+    user_data = user_dict['user_list']
+    last_row = user_dict['last_row']
+    count = 0
     for user in user_data:
-        status = un_follow(user[0])
+        status = un_follow(user[0], message)
         if status:
             print('User with id %s followed you.' % user[0])
             with open('follow.csv', 'a') as csv_file:
@@ -72,6 +73,10 @@ def follow_check(message=None):
             with open('unfollow.csv', 'a') as csv_file:
                 writer = csv.writer(csv_file, delimiter=str('\t'))
                 writer.writerow(user)
+        last_read = open('last_read_row.txt', 'wb')
+        count += 1
+        last_read.write(str(last_row + count))
+        last_read.close()
     print('Process complete!')
 
 
