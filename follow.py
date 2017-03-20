@@ -48,8 +48,8 @@ def follow_user(tweet_data, like):
                             unicode(user_info['name']).encode("utf-8"),
                             unicode(user_info['description']).encode("utf-8"),
                             unicode(user_info['location']).encode("utf-8"),
-                            unicode(user_info['id']).encode("utf-8"),
-                            unicode(user_info['text']).encode("utf-8"),
+                            unicode(tweet['id']).encode("utf-8"),
+                            unicode(tweet['text']).encode("utf-8"),
                             user_info['followers_count']
                         ])
                     following_users.append({
