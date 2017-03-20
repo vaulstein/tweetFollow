@@ -77,9 +77,12 @@ def follow_check(message=None):
 
 def main():
     common.start()
-    custom_message = common.ask('Custom message for new followers?',
-                                answer=common.str_compat, default=" ")
-    follow_check(custom_message.strip())
+    try:
+        custom_message = common.ask('Custom message for new followers?',
+                                    answer=common.str_compat, default=" ")
+        follow_check(custom_message.strip())
+    except Exception as e:
+        print(e)
 
 
 if __name__ == '__main__':
