@@ -24,7 +24,7 @@ def return_user():
 
 
 def send_message(user_id, message=None):
-    if not message:
+    if not message.strip():
         message_data = open('ThankYouMessage.txt', 'rb')
         message = message_data.read()
     parameter_encode = urllib.urlencode({'user_id': user_id, 'text': message})

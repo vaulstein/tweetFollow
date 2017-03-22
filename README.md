@@ -70,6 +70,8 @@ This permission can be found here:
 
 [![message.png](https://s27.postimg.org/nv274c4ar/message.png)](https://postimg.org/image/6ujavnr9b/)
 
+Add your default message to **ThankYouMessage.txt** or you can pass it at runtime also.
+
 ## Contributing
 
 Please read [CONTRIBUTE.md](CONTRIBUTE.md) for details on our code of conduct, and the process for submitting pull requests to us.

@@ -1,7 +1,11 @@
 # Sample Thank you Message
 # Replace with your own
+# Supports Emojis
 
-Thank you for the follow.
+Thank you for the follow 👍😎.
+
+LinkedIN: https://www.linkedin.com/in/vaulstein-rodrigues-85000549
 
 Checkout my blog: http://vaulstein.github.io
 
+Stackoverflow: https://stackoverflow.com/users/1934182/vaulstein
