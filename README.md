@@ -11,6 +11,7 @@ Once you receive this limit, you won't be allowed to follow more users for the d
 Trying to follow more user may result in your account being locked.
 https://support.twitter.com/articles/66885
 
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine.
@@ -59,6 +60,15 @@ Remember twitter API is rate limited.
 Rate limits for tweet search are 450/15 minutes.
 Rate limits for user search are 900/15 minutes.
 
+## Sending Messages 
+
+To send Thank you messages to your followers you will need to select **Read, Write and Access direct messages** 
+permissions.
+This permission can be found here: 
+
+[App on twitter](https://apps.twitter.com/)
+
+[![message.png](https://s27.postimg.org/nv274c4ar/message.png)](https://postimg.org/image/6ujavnr9b/)
 
 ## Contributing
 

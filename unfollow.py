@@ -28,13 +28,15 @@ def send_message(user_id, message=None):
         message_data = open('ThankYouMessage.txt', 'rb')
         message = message_data.read()
     parameter_encode = urllib.urlencode({'user_id': user_id, 'text': message})
-    message_call = common.oauth_req(common.TWITTER_API_URL + '/direct_messages/new.json' + parameter_encode,
+    message_call = common.oauth_req(common.TWITTER_API_URL + '/direct_messages/new.json?' + parameter_encode,
                                     http_method="POST")
-    message_call_data = json.loads(message_call)
-    if 'created_at' in message_call_data:
-        print('Thank you message sent.')
-        time.sleep(5)
-
+    try:
+        message_call_data = json.loads(message_call)
+        if 'created_at' in message_call_data:
+            print('Thank you message sent.')
+            time.sleep(5)
+    except ValueError:
+        print('Message could not be sent')
 
 def is_following(user_id):
     parameter_encode = urllib.urlencode({'target_id': user_id})
@@ -50,7 +52,8 @@ def un_follow(user_id, message):
     if not follow_status:
         # Not following, un-follow
         parameter_encode = urllib.urlencode({'user_id': user_id})
-        data = common.oauth_req(common.TWITTER_API_URL + '/friendships/destroy.json?' + parameter_encode)
+        data = common.oauth_req(common.TWITTER_API_URL + '/friendships/destroy.json?' + parameter_encode,
+                                http_method='POST')
         status = json.loads(data)
         if 'errors' in status:
             print(status['errors'][0]['message'])
