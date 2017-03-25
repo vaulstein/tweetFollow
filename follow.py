@@ -15,21 +15,32 @@ import common
 import unfollow
 
 
+def get_unfollow_user():
+    unfollow_id = []
+    with open('user.csv', 'r') as csv_file:
+        reader = csv.reader(csv_file, delimiter=str('\t'))
+        for row in reader:
+            unfollow_id.append(int(row[0]))
+    return unfollow_id
+
+
 def follow_user(tweet_data, like):
     following_users = []
     try:
         for tweet in tweet_data:
             user_info = tweet['user']
+            user_id = user_info['id']
             request_sent = user_info['follow_request_sent']
             following = user_info['following']
-            if not (request_sent or following):
+            unfollowed_users = get_unfollow_user()
+            if (user_id not in unfollowed_users) and not (request_sent or following):
                 if like:
                     like_params = urllib.urlencode({'id': tweet['id']})
                     like_tweet = common.oauth_req(common.TWITTER_API_URL + '/favorites/create.json?' + like_params,
                                                   http_method="POST")
                     print('Liked tweet. Sleeping 10s before follow.')
                     time.sleep(10)
-                user_id = user_info['id']
+
                 parameter_encode = urllib.urlencode({'user_id': user_id})
                 # TODO Add fake user-agent
                 follow_request = common.oauth_req(

@@ -41,8 +41,15 @@ def send_message(user_id, message=None):
 def is_following(user_id):
     parameter_encode = urllib.urlencode({'target_id': user_id})
     follow_status_call = common.oauth_req(common.TWITTER_API_URL + '/friendships/show.json?' + parameter_encode)
-    follow_status_data = json.loads(follow_status_call)
-    follow_status = follow_status_data['relationship']['target']['following']
+    try:
+        follow_status_data = json.loads(follow_status_call)
+        follow_status = follow_status_data['relationship']['target']['following']
+    except KeyError:
+        print(follow_status_data['errors'][0]['message'])
+        follow_status = None
+    except ValueError:
+        print('Rate limit exceeded.')
+        sys.exit(0)
     time.sleep(5)
     return follow_status
 
@@ -51,15 +58,18 @@ def un_follow(user_id, message):
     follow_status = is_following(user_id)
     if not follow_status:
         # Not following, un-follow
-        parameter_encode = urllib.urlencode({'user_id': user_id})
-        data = common.oauth_req(common.TWITTER_API_URL + '/friendships/destroy.json?' + parameter_encode,
-                                http_method='POST')
-        status = json.loads(data)
-        if 'errors' in status:
-            print(status['errors'][0]['message'])
-            sys.exit(0)
-        time.sleep(5)
-        return False
+        if follow_status is None:
+            return False
+        else:
+            parameter_encode = urllib.urlencode({'user_id': user_id})
+            data = common.oauth_req(common.TWITTER_API_URL + '/friendships/destroy.json?' + parameter_encode,
+                                    http_method='POST')
+            status = json.loads(data)
+            if 'errors' in status:
+                print(status['errors'][0]['message'])
+                sys.exit(0)
+            time.sleep(5)
+            return False
     else:
         send_message(user_id, message)
         return True
