@@ -1,5 +1,6 @@
 import csv
 import json
+import socket
 import sys
 import time
 import urllib
@@ -62,12 +63,19 @@ def un_follow(user_id, message):
             return False
         else:
             parameter_encode = urllib.urlencode({'user_id': user_id})
-            data = common.oauth_req(common.TWITTER_API_URL + '/friendships/destroy.json?' + parameter_encode,
-                                    http_method='POST')
-            status = json.loads(data)
+            try:
+                data = common.oauth_req(common.TWITTER_API_URL + '/friendships/destroy.json?' + parameter_encode,
+                                        http_method='POST')
+                status = json.loads(data)
+            except socket.error:
+                status = None
+                print('Connection Time-out.')
             if 'errors' in status:
-                print(status['errors'][0]['message'])
-                sys.exit(0)
+                if status['errors'][0]['code'] == 34:
+                    print("User no longer exists.")
+                else:
+                    print(status['errors'][0]['message'])
+                    sys.exit(0)
             time.sleep(5)
             return False
     else:

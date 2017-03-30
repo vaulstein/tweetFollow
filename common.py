@@ -35,6 +35,7 @@ CONF = {
     'count': 100,
     'until': None,
     'since_id': None,
+    'type_of_follow': '1'
 }
 
 RESULT_MAP = {
@@ -159,13 +160,13 @@ def ask(question, answer=str_compat, default=None, l=None, options=None):
                 r = default
                 break
 
-            # try:
-            if int(r) in range(1, len(options) + 1):
-                break
-            else:
-                print('Please select valid option: ' + '/'.join('{}'.format(s) for _, s in enumerate(options)))
-                # except:
-                #     print('Not a valid option')
+            try:
+                if int(r) in range(1, len(options) + 1):
+                    break
+                else:
+                    print('Please select valid option: ' + ' or '.join('{}'.format(s) for _, s in enumerate(options)))
+            except:
+                print('Please select valid option: ' + ' or '.join('{}'.format(s) for _, s in enumerate(options)))
         return r
     if answer == dateObject:
         r = ''

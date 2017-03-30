@@ -28,19 +28,33 @@ def follow_user(tweet_data, like):
     following_users = []
     try:
         for tweet in tweet_data:
-            user_info = tweet['user']
-            user_id = user_info['id']
-            request_sent = user_info['follow_request_sent']
-            following = user_info['following']
+            if common.CONF['type_of_follow'] == '1':
+                user_info = tweet['user']
+                user_id = user_info['id']
+                request_sent = user_info['follow_request_sent']
+                following = user_info['following']
+                tweet_id = tweet['id']
+                tweet_text = tweet['text']
+            else:
+                user_info = tweet
+                user_id = user_info['id']
+                request_sent = user_info['follow_request_sent']
+                following = user_info['following']
+                try:
+                    tweet_id = tweet['status']['id']
+                    tweet_text = tweet['status']['text']
+                except KeyError:
+                    tweet_id = None
+                    tweet_text = None
+                    print("User hasn't tweeted yet.")
             unfollowed_users = get_unfollow_user()
             if (user_id not in unfollowed_users) and not (request_sent or following):
                 if like:
-                    like_params = urllib.urlencode({'id': tweet['id']})
+                    like_params = urllib.urlencode({'id': tweet_id})
                     like_tweet = common.oauth_req(common.TWITTER_API_URL + '/favorites/create.json?' + like_params,
                                                   http_method="POST")
                     print('Liked tweet. Sleeping 10s before follow.')
                     time.sleep(10)
-
                 parameter_encode = urllib.urlencode({'user_id': user_id})
                 # TODO Add fake user-agent
                 follow_request = common.oauth_req(
@@ -59,8 +73,8 @@ def follow_user(tweet_data, like):
                             unicode(user_info['name']).encode("utf-8"),
                             unicode(user_info['description']).encode("utf-8"),
                             unicode(user_info['location']).encode("utf-8"),
-                            unicode(tweet['id']).encode("utf-8"),
-                            unicode(tweet['text']).encode("utf-8"),
+                            unicode(tweet_id).encode("utf-8"),
+                            unicode(tweet_text).encode("utf-8"),
                             user_info['followers_count']
                         ])
                     following_users.append({
@@ -79,9 +93,9 @@ def follow_user(tweet_data, like):
     return following_users
 
 
-def get_json_data(url, parameters, like=False):
+def get_json_data(url, parameters, like=False, favourite=False):
     json_element = {"users": []}
-    page = 1
+    cursor = -1
     max_id = None
     while True:
         parameter_encode = urllib.urlencode(parameters)
@@ -91,17 +105,30 @@ def get_json_data(url, parameters, like=False):
             print('Connection timed-out. Try again later.')
             break
         search_result = json.loads(search_result)
-        try:
-            statuses = search_result['statuses']
-            assert len(statuses) > 1
-        except (KeyError, AssertionError):
-            if not max_id:
-                print('Empty response received.')
-            break
-        followed_user = follow_user(statuses, like)
-        json_element['users'].extend(followed_user)
-        max_id = statuses[-1]['id']
-        parameters['max_id'] = max_id
+        if common.CONF['type_of_follow'] == '1':
+            try:
+                statuses = search_result['statuses']
+                assert len(statuses) > 1
+            except (KeyError, AssertionError):
+                if not max_id:
+                    print('Empty response received.')
+                break
+            followed_user = follow_user(statuses, like)
+            json_element['users'].extend(followed_user)
+            max_id = statuses[-1]['id']
+            parameters['max_id'] = max_id
+        else:
+            try:
+                followers = search_result['users']
+                assert len(followers) > 1
+            except (KeyError, AssertionError):
+                if cursor != -1:
+                    print('Empty response received.')
+                break
+            followed_user = follow_user(followers, like)
+            json_element['users'].extend(followed_user)
+            cursor = search_result['next_cursor']
+            parameters['cursor'] = cursor
 
     return json_element
 
@@ -111,40 +138,50 @@ def main():
     action_type = common.ask('Follow or Un-follow? 1/Follow 2/Unfollow',
                              answer=list, default='1', options=[1, 2])
     if action_type == '1':
-        like_value = common.ask('Like tweet? Y/N',
-                                answer=common.str_compat, default='N')
+        like_value = common.ask('Like tweet? ',
+                                answer=bool, default='N')
         like = True if like_value == 'Y' else False
         request_params = {}
-
-        print("A list of questions would now be asked to fetch Tweets. And those users will be followed.")
-        common.CONF['query'] = common.ask('Search terms? ' +
+        common.CONF['type_of_follow'] = common.ask(
+            'Would you like to follow people based on tweets or follow followers of a user?' +
+            " 1/By Tweet 2/Follow User's Followers", answer=list,
+            default='1', options=[1, 2]
+            )
+        if common.CONF['type_of_follow'] == '1':
+            print("A list of questions would now be asked to fetch Tweets. And those users will be followed.")
+            common.CONF['query'] = common.ask('Search terms? ' +
                                           'Found here: https://dev.twitter.com/rest/public/search',
                                           answer=common.str_compat)
-        request_params['q'] = common.CONF['query']
-        result_data_type = common.ask('Type of search results? 1/Popular 2/Recent 3/Mixed',
+            request_params['q'] = common.CONF['query']
+            result_data_type = common.ask('Type of search results? 1/Popular 2/Recent 3/Mixed',
                                       answer=list, default='1', options=[1, 2, 3])
-        request_params['result_type'] = common.RESULT_MAP[result_data_type]
-        location = common.ask('Location? Eg. 1600 Amphitheatre Parkway, Mountain View, CA',
+            request_params['result_type'] = common.RESULT_MAP[result_data_type]
+            location = common.ask('Location? Eg. 1600 Amphitheatre Parkway, Mountain View, CA',
                               answer=common.str_compat, default=" ")
-        if location.strip():
-            encode_location = urllib.urlencode({'address': location})
-            response_location = requests.get('https://maps.googleapis.com/maps/api/geocode/json?' +
+            if location.strip():
+                encode_location = urllib.urlencode({'address': location})
+                response_location = requests.get('https://maps.googleapis.com/maps/api/geocode/json?' +
                                              encode_location)
-            try:
-                location_json = response_location.json()
-                location_data = location_json['results'][0]['geometry']['location']
-                location_array = [str(value) for value in location_data.itervalues()]
-                if location_array:
-                    radius_mi = common.ask('Distance to search within in miles',
-                                           answer=common.str_compat)
+                try:
+                    location_json = response_location.json()
+                    location_data = location_json['results'][0]['geometry']['location']
+                    location_array = [str(value) for value in location_data.itervalues()]
+                    if location_array:
+                        radius_mi = common.ask('Distance to search within in miles',
+                                               answer=common.str_compat)
 
-                    location_array.append(radius_mi + u'mi')
-                    common.CONF['geocode'] = ",".join(location_array)
-                    request_params['geocode'] = common.CONF['geocode']
-            except:
-                print('Unable to fetch lat and long for location')
-        url = common.TWITTER_API_URL + '/search/tweets.json?'
-        print('Sending request to API...')
+                        location_array.append(radius_mi + u'mi')
+                        common.CONF['geocode'] = ",".join(location_array)
+                        request_params['geocode'] = common.CONF['geocode']
+                except:
+                    print('Unable to fetch lat and long for location')
+            url = common.TWITTER_API_URL + '/search/tweets.json?'
+            print('Sending request to API...')
+        else:
+            user_followers = common.ask("Enter the username of the user who's followers you want to follow?",
+                                        answer=common.str_compat)
+            url = common.TWITTER_API_URL + '/followers/list.json?'
+            request_params['screen_name'] = user_followers
         json_search_data = get_json_data(url, request_params, like)
         if json_search_data['users']:
             print('Output file generated.')
