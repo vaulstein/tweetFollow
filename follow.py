@@ -5,7 +5,6 @@ from __future__ import print_function, unicode_literals
 import csv
 import json
 import socket
-import sys
 import time
 import urllib
 
@@ -17,7 +16,7 @@ import unfollow
 
 def get_unfollow_user():
     unfollow_id = []
-    with open('user.csv', 'r') as csv_file:
+    with open('unfollow.csv', 'r') as csv_file:
         reader = csv.reader(csv_file, delimiter=str('\t'))
         for row in reader:
             unfollow_id.append(int(row[0]))
@@ -26,6 +25,7 @@ def get_unfollow_user():
 
 def follow_user(tweet_data, like):
     following_users = []
+    unfollowed_users = get_unfollow_user()
     try:
         for tweet in tweet_data:
             if common.CONF['type_of_follow'] == '1':
@@ -47,47 +47,51 @@ def follow_user(tweet_data, like):
                     tweet_id = None
                     tweet_text = None
                     print("User hasn't tweeted yet.")
-            unfollowed_users = get_unfollow_user()
             if (user_id not in unfollowed_users) and not (request_sent or following):
                 if like:
                     like_params = urllib.urlencode({'id': tweet_id})
                     like_tweet = common.oauth_req(common.TWITTER_API_URL + '/favorites/create.json?' + like_params,
                                                   http_method="POST")
                     print('Liked tweet. Sleeping 10s before follow.')
-                    time.sleep(10)
+                    time.sleep(30)
                 parameter_encode = urllib.urlencode({'user_id': user_id})
                 # TODO Add fake user-agent
                 follow_request = common.oauth_req(
                     common.TWITTER_API_URL + '/friendships/create.json?' + parameter_encode,
                     http_method="POST")
-                follow_response = json.loads(follow_request)
-                if 'errors' in follow_response:
-                    print('You have reached your limit of following 1000 users per day.')
-                    sys.exit(0)
-                if 'following' in follow_response:
-                    with open('user.csv', 'a') as csv_file:
-                        writer = csv.writer(csv_file, delimiter=str('\t'))
-                        writer.writerow([
-                            user_id,
-                            unicode(user_info['screen_name']).encode("utf-8"),
-                            unicode(user_info['name']).encode("utf-8"),
-                            unicode(user_info['description']).encode("utf-8"),
-                            unicode(user_info['location']).encode("utf-8"),
-                            unicode(tweet_id).encode("utf-8"),
-                            unicode(tweet_text).encode("utf-8"),
-                            user_info['followers_count']
-                        ])
-                    following_users.append({
-                        'user_id': user_id,
-                        'screen_name': user_info['screen_name'],
-                        'name': user_info['name'],
-                        'description': user_info['description'],
-                        'location': user_info['location'],
-                        'followers_count': user_info['followers_count']
-                    })
-                    print('Following: %s.\n' % user_info['screen_name'])
-                    print('Sleeping 10secs since next follow request.\n')
-                    time.sleep(10)
+                try:
+                    follow_response = json.loads(follow_request)
+                    if 'errors' in follow_response:
+                        print('You have reached your limit of following 1000 users per day.')
+                        print('The next set of users will be followed tomorrow.')
+                        time.sleep(86400)
+                    if 'following' in follow_response:
+                        with open('user.csv', 'a') as csv_file:
+                            writer = csv.writer(csv_file, delimiter=str('\t'))
+                            writer.writerow([
+                                user_id,
+                                unicode(user_info['screen_name']).encode("utf-8"),
+                                unicode(user_info['name']).encode("utf-8"),
+                                unicode(user_info['description']).encode("utf-8"),
+                                unicode(user_info['location']).encode("utf-8"),
+                                unicode(tweet_id).encode("utf-8"),
+                                unicode(tweet_text).encode("utf-8"),
+                                user_info['followers_count']
+                            ])
+                        following_users.append({
+                            'user_id': user_id,
+                            'screen_name': user_info['screen_name'],
+                            'name': user_info['name'],
+                            'description': user_info['description'],
+                            'location': user_info['location'],
+                            'followers_count': user_info['followers_count']
+                        })
+                        print('Following: %s.\n' % user_info['screen_name'])
+                        print('Sleeping 10secs since next follow request.\n')
+                        time.sleep(30)
+                except Exception as e:
+                    print(e)
+                    continue
     except Exception as e:
         print(e)
     return following_users
@@ -138,9 +142,8 @@ def main():
     action_type = common.ask('Follow or Un-follow? 1/Follow 2/Unfollow',
                              answer=list, default='1', options=[1, 2])
     if action_type == '1':
-        like_value = common.ask('Like tweet? ',
-                                answer=bool, default='N')
-        like = True if like_value == 'Y' else False
+        like = common.ask('Like tweet? ',
+                          answer=bool, default='N')
         request_params = {}
         common.CONF['type_of_follow'] = common.ask(
             'Would you like to follow people based on tweets or follow followers of a user?' +
