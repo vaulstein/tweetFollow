@@ -1,13 +1,19 @@
 # [![Screenshot from 2017-03-16 22-02-35.png](https://s28.postimg.org/xzqkds41p/Screenshot_from_2017_03_16_22_02_35.png)](https://postimg.org/image/96h0d4l15/)
 
 
-CLI interface to fetch tweets based on keywords, hashtags and follow those users.
+CLI interface to search users by tweets(hashtags, keywords, location) and follow those users.
+Followers of a particular user can also be followed.
 You can now Un-follow users who don't follow you and send a Thank You message to those who follow.
+
+_Note: Do not edit the files created by the code. You can create a copy of those files and edit the copy._
 
 ## Follow Limit
 
 Twitter has a limit of following 1000 users per day.
 Once you receive this limit, you won't be allowed to follow more users for the day.
+
+**The script has been automated to pause and resume the next day if you have reached your limit for the day.**
+
 Trying to follow more user may result in your account being locked.
 https://support.twitter.com/articles/66885
 
@@ -42,7 +48,18 @@ On running the script you would be asked a set of questions that would help in f
      > Your Access Token? Found here: https://apps.twitter.com/app/{ Your API}/keys
      > Your Access Token Secret? Found here: https://apps.twitter.com/app/{ Your API}/keys
 
-Based on your selection you would be asked a few questions for the search parameters.
+You can either **follow** new users or **unfollow** users who haven't followed you back.
+
+Select **1** to Follow Users, **2** to unfollow users.
+
+If you decide to follow users, you can either search users by tweet and follow 
+                        OR
+provide the **screen_name** of a twitter user and follow his/her followers.
+
+Please note, If you use the second option, it is advisable to also like/favourite that user's current tweet
+ to avoid you account from being locked and also likes tend to get more followers.
+
+If you use the search by tweet and follow option, you would be asked for the search parameters.
 
 The different search parameters can be found here:
 [Query parameters](https://dev.twitter.com/rest/public/search)
@@ -53,8 +70,6 @@ For fetching Tweet search data, the below is an example of questions:
 
 [![Screenshot from 2017-03-16 21-50-58.png](https://s22.postimg.org/8pv8przoh/Screenshot_from_2017_03_16_21_50_58.png)](https://postimg.org/image/iaevcnp0d/)
 
-The last question would be the name of the output file you would want to write to.
-If you specify the same file name as the last, remember to take a backup.
 
 Remember twitter API is rate limited.
 Rate limits for tweet search are 450/15 minutes.
