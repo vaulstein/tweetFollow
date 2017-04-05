@@ -16,11 +16,14 @@ import unfollow
 
 def get_unfollow_user():
     unfollow_id = []
-    with open('unfollow.csv', 'r') as csv_file:
-        reader = csv.reader(csv_file, delimiter=str('\t'))
-        for row in reader:
-            unfollow_id.append(int(row[0]))
-    return unfollow_id
+    try:
+        with open('unfollow.csv', 'r') as csv_file:
+            reader = csv.reader(csv_file, delimiter=str('\t'))
+            for row in reader:
+                unfollow_id.append(int(row[0]))
+        return unfollow_id
+    except IOError:
+        return None
 
 
 def follow_user(tweet_data, like):
@@ -47,7 +50,10 @@ def follow_user(tweet_data, like):
                     tweet_id = None
                     tweet_text = None
                     print("User hasn't tweeted yet.")
-            if (user_id not in unfollowed_users) and not (request_sent or following):
+            followed = False
+            if unfollowed_users:
+                followed = user_id not in unfollowed_users
+            if (not followed) and not (request_sent or following):
                 if like:
                     like_params = urllib.urlencode({'id': tweet_id})
                     like_tweet = common.oauth_req(common.TWITTER_API_URL + '/favorites/create.json?' + like_params,
