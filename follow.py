@@ -53,7 +53,7 @@ def follow_user(tweet_data, like):
             followed = False
             if unfollowed_users:
                 followed = user_id not in unfollowed_users
-            if (not followed) and not (request_sent or following):
+            if followed and not (request_sent or following):
                 if like:
                     like_params = urllib.urlencode({'id': tweet_id})
                     like_tweet = common.oauth_req(common.TWITTER_API_URL + '/favorites/create.json?' + like_params,
