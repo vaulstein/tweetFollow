@@ -24,6 +24,38 @@ def return_user():
     return {'user_list': user_list, 'last_row': last_row}
 
 
+def get_followers():
+    cursor = -1
+    while True:
+        parameters = {'skip_status': True, 'include_user_entities': False, 'cursor': cursor}
+        parameter_encode = urllib.urlencode(parameters)
+        try:
+            get_user_list = common.oauth_req(common.TWITTER_API_URL + '/friends/list.json?' + parameter_encode)
+        except socket.error:
+            print('Connection timed-out. Try again later.')
+            break
+        try:
+            following_data = json.loads(get_user_list)
+            if 'users' in following_data:
+                user_list = following_data['users']
+                for each_user in user_list:
+                    follower_count = each_user["followers_count"]
+                    following = each_user["following"]
+                    if follower_count < 200 and not following:
+                        print(
+                        'Un-following user %s with follower count %d' % (each_user['screen_name'], follower_count))
+                        un_follow_request(each_user['id'])
+                cursor = following_data['next_cursor']
+                parameters['cursor'] = cursor
+                time.sleep(10)
+        except KeyError:
+            print(following_data['errors'][0]['message'])
+        except ValueError:
+            break
+            print('Rate limit exceeded.')
+
+
+
 def send_message(user_id, message=None):
     if not message.strip():
         message_data = open('ThankYouMessage.txt', 'rb')
@@ -35,24 +67,47 @@ def send_message(user_id, message=None):
         message_call_data = json.loads(message_call)
         if 'created_at' in message_call_data:
             print('Thank you message sent.')
-            time.sleep(5)
+            time.sleep(10)
     except ValueError:
         print('Message could not be sent')
 
+
 def is_following(user_id):
     parameter_encode = urllib.urlencode({'target_id': user_id})
-    follow_status_call = common.oauth_req(common.TWITTER_API_URL + '/friendships/show.json?' + parameter_encode)
     try:
-        follow_status_data = json.loads(follow_status_call)
-        follow_status = follow_status_data['relationship']['target']['following']
-    except KeyError:
-        print(follow_status_data['errors'][0]['message'])
-        follow_status = None
-    except ValueError:
-        print('Rate limit exceeded.')
-        sys.exit(0)
-    time.sleep(5)
+        follow_status_call = common.oauth_req(common.TWITTER_API_URL + '/friendships/show.json?' + parameter_encode)
+        try:
+            follow_status_data = json.loads(follow_status_call)
+            follow_status = follow_status_data['relationship']['target']['following']
+        except KeyError:
+            print(follow_status_data['errors'][0]['message'])
+            follow_status = None
+        except ValueError:
+            print('Rate limit exceeded.')
+            sys.exit(0)
+    except socket.error, v:
+        print(v)
+    time.sleep(10)
     return follow_status
+
+
+def un_follow_request(user_id):
+    parameter_encode = urllib.urlencode({'user_id': user_id})
+    try:
+        data = common.oauth_req(common.TWITTER_API_URL + '/friendships/destroy.json?' + parameter_encode,
+                                http_method='POST')
+        status = json.loads(data)
+    except socket.error:
+        status = None
+        print('Connection Time-out.')
+    if status and 'errors' in status:
+        if status['errors'][0]['code'] == 34:
+            print("User no longer exists.")
+        else:
+            print(status['errors'][0]['message'])
+            sys.exit(0)
+    time.sleep(10)
+    return False
 
 
 def un_follow(user_id, message):
@@ -62,22 +117,7 @@ def un_follow(user_id, message):
         if follow_status is None:
             return False
         else:
-            parameter_encode = urllib.urlencode({'user_id': user_id})
-            try:
-                data = common.oauth_req(common.TWITTER_API_URL + '/friendships/destroy.json?' + parameter_encode,
-                                        http_method='POST')
-                status = json.loads(data)
-            except socket.error:
-                status = None
-                print('Connection Time-out.')
-            if 'errors' in status:
-                if status['errors'][0]['code'] == 34:
-                    print("User no longer exists.")
-                else:
-                    print(status['errors'][0]['message'])
-                    sys.exit(0)
-            time.sleep(5)
-            return False
+            return un_follow_request(user_id)
     else:
         send_message(user_id, message)
         return True
@@ -110,9 +150,13 @@ def follow_check(message=None):
 def main():
     common.start()
     try:
-        custom_message = common.ask('Custom message for new followers?',
+        start_unfollow = common.ask('Unfollow from beginning of time? (TEST FEATURE)', answer=bool, default='N')
+        if start_unfollow:
+            get_followers()
+        else:
+            custom_message = common.ask('Custom message for new followers?',
                                     answer=common.str_compat, default=" ")
-        follow_check(custom_message.strip())
+            follow_check(custom_message.strip())
     except Exception as e:
         print(e)
 
