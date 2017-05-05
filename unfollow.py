@@ -40,14 +40,14 @@ def get_followers():
                 user_list = following_data['users']
                 for each_user in user_list:
                     follower_count = each_user["followers_count"]
-                    following = each_user["following"]
+                    following = is_following(each_user['id'])
                     if follower_count < 200 and not following:
                         print(
                         'Un-following user %s with follower count %d' % (each_user['screen_name'], follower_count))
                         un_follow_request(each_user['id'])
                 cursor = following_data['next_cursor']
                 parameters['cursor'] = cursor
-                time.sleep(10)
+                time.sleep(5)
         except KeyError:
             print(following_data['errors'][0]['message'])
         except ValueError:
@@ -150,7 +150,7 @@ def follow_check(message=None):
 def main():
     common.start()
     try:
-        start_unfollow = common.ask('Unfollow from beginning of time? (TEST FEATURE)', answer=bool, default='N')
+        start_unfollow = common.ask('Unfollow from beginning of time? ', answer=bool, default='N')
         if start_unfollow:
             get_followers()
         else:
