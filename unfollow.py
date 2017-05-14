@@ -41,9 +41,9 @@ def get_followers():
                 for each_user in user_list:
                     follower_count = each_user["followers_count"]
                     following = is_following(each_user['id'])
-                    if follower_count < 200 and not following:
-                        print(
-                        'Un-following user %s with follower count %d' % (each_user['screen_name'], follower_count))
+                    print('User %s with follower count %d' % (each_user['screen_name'], follower_count))
+                    if follower_count < 400 and not following:
+                        print('Un-following')
                         un_follow_request(each_user['id'])
                 cursor = following_data['next_cursor']
                 parameters['cursor'] = cursor

@@ -50,6 +50,7 @@ def follow_user(tweet_data, like):
                     tweet_id = None
                     tweet_text = None
                     print("User hasn't tweeted yet.")
+                    time.sleep(5)
             followed = False
             if unfollowed_users:
                 followed = user_id not in unfollowed_users
