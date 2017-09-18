@@ -279,5 +279,5 @@ def start():
     CONF['api_secret'] = ask('Your Access Token Secret? ' +
                              'Found here: https://apps.twitter.com/app/{ Your API}/keys',
                              answer=str_compat, default=CONF['api_secret'])
-    if not os.path.isfile(configfile):
-        config_reader(configfile)
+    # if not os.path.isfile(configfile):
+    config_reader(configfile)
